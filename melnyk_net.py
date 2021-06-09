@@ -152,7 +152,7 @@ def main():
 	parser.add_argument("-hsr","--height_shift_range", type=float, required=False, default=0.05, help="Setting for Data Augmentation in Generator")
 	parser.add_argument("-zr","--zoom_range", type=float, required=False, default=0.1, help="Setting for Data Augmentation in Generator")
 	parser.add_argument("-rr","--rotation_range", type=float, required=False, default=0, help="Setting for Data Augmentation in Generator")
-	parser.add_argument("-cm","--color_mode", type=str, required=False, default='grayscale', help="specify color_mode in Generator")
+	parser.add_argument("-cm","--color_mode", type=str, required=False, default='rgb', help="specify color_mode in Generator")
 	args = parser.parse_args()
 
 	LOG_DIR = args.log_dir 
@@ -198,16 +198,12 @@ def main():
 	filepath = os.path.join(models_dir, 'model.{epoch:02d}-{val_loss:.2f}.hdf5')
 	checkpoint = ModelCheckpoint(filepath, monitor='val_acc', verbose=1, save_best_only=False, save_weights_only=False, mode='auto')
 
-	# lr_scheduler = LearningRateScheduler(schedule, verbose=1)
-	# lr_reducer = ReduceLROnPlateau(monitor='val_loss', factor=0.1, patience=0, verbose=1, mode='auto', min_delta=0.0001, min_lr=0.000001)
-	# lr_reducer2 = ReduceLROnPlateau(monitor='acc', factor=0.5, patience=0, verbose=1, mode='auto', min_delta=0.0001, min_lr=0.000001)
 	lr_reducer = ReduceLROnPlateau(monitor='val_loss', factor=0.2,
                               patience=5, min_lr=0.001)
 	early_stopping = EarlyStopping(monitor='val_loss', patience=5)
 
 	def schedule(epoch):  
 		initial_lr = K.get_value(model.optimizer.lr)
-		print('epoch:', epoch)
 		if not DECAY_EPOCH:
 			return initial_lr
 		decay_epochs = DECAY_EPOCH.split(',')
