@@ -16,7 +16,7 @@ def main():
     parser.add_argument("-ts","--training_src", type=str, required=True, help="Specify the training source")
     parser.add_argument("-da","--data_augmentation", type=bool, default=True, help="Whether train model with data augmentation or not: 1 or 0")
     parser.add_argument("-e","--evaluate_model", action='store_true', help="Evaluate valid set")
-    parser.add_argument("-cm","--color_mode", type=str, required=False, default='grayscale', help="specify color_mode in Generator")
+    parser.add_argument("-cm","--color_mode", type=str, required=False, default='rgb', help="specify color_mode in Generator")
     args = parser.parse_args()
     print(args)
 

@@ -37,10 +37,14 @@ class GlobalWeightedAveragePooling2D(GlobalAveragePooling2D):
 
 
 # Hyper parameters
+
+############ change model here ############
+MODEL_PATH = 'model_create_selectNew_801.hdf5' #'model_create_selectNew_879.hdf5' # 
+############ change model here ############
+
 IMG_SHAPE = (96,96)
 COLOR_MODE = 'rgb'
 CHANNEL = 3 if COLOR_MODE=='rgb' else 1
-
 
 
 # load label to char dictionary
@@ -50,33 +54,26 @@ with open('label2char_801.pkl', 'rb') as f:
 with open('label2char_879.pkl', 'rb') as f:
     label2char_879 = pickle.load(f)
 
+if '879' in MODEL_PATH:
+	label2char = label2char_879
+else:
+	label2char = label2char_801
+
+# load model
+model = load_model(MODEL_PATH, custom_objects={"GlobalWeightedAveragePooling2D": GlobalWeightedAveragePooling2D})
+
+########### Add the above code to the beginning of api.py ########### 
+
 
 def main():
 	parser = argparse.ArgumentParser()
 	parser.add_argument("-ip","--img_path", type=str, required=True, 
 						help="Specify the path of image")
-	parser.add_argument("-mp","--model_path", type=str, required=True, 
-						help="Specify trained model path")
 	args = parser.parse_args()
 	
-	# img_path = '../training_data/combine/丁/0Ogq_select_22.jpg'
-	# img_path = '../training_data/combine/巧/0gVm_select_58.jpg'
-	# img_path = '../training_data/combine/健/0qr9_88.jpg'
-	# img_path = '../training_data/combine/高/0JXn_96.jpg'
-	
 	IMG_PATH = args.img_path 
-	MODEL_PATH = args.model_path 
-	
-	if 'combine_similar' in MODEL_PATH:
-		label2char = label2char_879
-	else:
-		label2char = label2char_801
-
-
 	image = cv2.imread(IMG_PATH) 
-	
-	# load model
-	model = load_model(MODEL_PATH, custom_objects={"GlobalWeightedAveragePooling2D": GlobalWeightedAveragePooling2D})
+
 
 	####### PUT YOUR MODEL INFERENCING CODE HERE #######
 
@@ -96,10 +93,14 @@ def main():
 
 	# predict
 	prediction = model.predict(img)
-	prediction = np.argmax(prediction, axis=1)[0]
-	prediction = label2char[prediction]
+	if np.max(prediction, axis=1)[0]<0.6:
+		prediction = 'isnull'
+	else:
+		prediction = np.argmax(prediction, axis=1)[0]
+		prediction = label2char[prediction]
 	if prediction not in set(label2char_801.values()):
 		prediction = 'isnull'
+	
 	####################################################
 
 	print('\n{} is {}'.format(IMG_PATH, prediction))

@@ -153,6 +153,9 @@ def main():
 	parser.add_argument("-zr","--zoom_range", type=float, required=False, default=0.1, help="Setting for Data Augmentation in Generator")
 	parser.add_argument("-rr","--rotation_range", type=float, required=False, default=0, help="Setting for Data Augmentation in Generator")
 	parser.add_argument("-cm","--color_mode", type=str, required=False, default='rgb', help="specify color_mode in Generator")
+	parser.add_argument("-ct","--continue_training", type=str, required=False, default='',help="specify the model to continue training")
+	parser.add_argument("-nc","--number_classes", type=int, required=False, default=801)
+
 	args = parser.parse_args()
 
 	LOG_DIR = args.log_dir 
@@ -166,14 +169,19 @@ def main():
 	ZOOM_RANGE = args.zoom_range
 	ROTATION_RANGE = args.rotation_range
 	COLOR_MODE = args.color_mode
-	NUM_CLASSES = 879 if TRAINING_SRC=='combine_similar' else 801
+	CONTINUE_TRAINING = args.continue_training
+	NUM_CLASSES = args.number_classes
 
 	if COLOR_MODE=='grayscale':
 		input_shape = (96,96,1)
 	elif COLOR_MODE=='rgb':
 		input_shape = (96,96,3)
 	
-	model = melnyk_net(num_classes=NUM_CLASSES, input_shape=input_shape, use_pretrained_weights=False, include_top=True)
+	if not CONTINUE_TRAINING:
+		model = melnyk_net(num_classes=NUM_CLASSES, input_shape=input_shape, use_pretrained_weights=False, include_top=True)
+	else:
+		model = load_model(CONTINUE_TRAINING, custom_objects={"GlobalWeightedAveragePooling2D": GlobalWeightedAveragePooling2D})
+
 	
 	adam = Adam(lr=LEARNING_RATE)
 	model.compile(loss='categorical_crossentropy', optimizer=adam, metrics=['accuracy'])
